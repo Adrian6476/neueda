@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天气查询系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .auth-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .auth-tab.active {
+            background: #0984e3;
+            color: white;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .btn {
+            background: #0984e3;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #74b9ff;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .weather-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .weather-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .weather-form input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            min-width: 200px;
+        }
+
+        .weather-form select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .location-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 200px;
+            flex: 1;
+        }
+
+        .location-controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+            background: #6c757d;
+        }
+
+        .btn-small:hover {
+            background: #5a6268;
+        }
+
+        .location-status {
+            font-size: 12px;
+            color: #6c757d;
+            margin: 0;
+        }
+
+        .weather-result {
+            margin-top: 20px;
+        }
+
+        .weather-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .weather-card h3 {
+            color: #0984e3;
+            margin-bottom: 10px;
+        }
+
+        .weather-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .weather-item {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .weather-item strong {
+            display: block;
+            color: #0984e3;
+            margin-bottom: 5px;
+        }
+
+        .forecast-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .forecast-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .user-info {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .history-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .error {
+            color: #e74c3c;
+            margin: 10px 0;
+        }
+
+        .success {
+            color: #27ae60;
+            margin: 10px 0;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .weather-form {
+                flex-direction: column;
+            }
+            
+            .weather-form input,
+            .weather-form select {
+                min-width: auto;
+            }
+            
+            .weather-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌤️ 天气查询系统</h1>
+            <p>基于高德地图API的天气查询服务</p>
+        </div>
+
+        <div class="user-info" id="userInfo">
+            <span id="welcomeText"></span>
+            <button class="btn" id="logoutBtn" style="float: right;">退出登录</button>
+        </div>
+
+        <div class="auth-section" id="authSection">
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="loginTab">登录</button>
+                <button class="auth-tab" id="registerTab">注册</button>
+            </div>
+
+            <form class="auth-form active" id="loginForm">
+                <div class="form-group">
+                    <label>邮箱</label>
+                    <input type="email" id="loginEmail" autocomplete="email" required>
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="loginPassword" autocomplete="current-password" required>
+                </div>
+                <button type="submit" class="btn">登录</button>
+                <div id="loginError" class="error"></div>
+            </form>
+
+            <form class="auth-form" id="registerForm">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input type="text" id="registerUsername" autocomplete="username" required>
+                </div>
+                <div class="form-group">
+                    <label>邮箱</label>
+                    <input type="email" id="registerEmail" autocomplete="email" required>
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="registerPassword" autocomplete="new-password" required>
+                </div>
+                <button type="submit" class="btn">注册</button>
+                <div id="registerError" class="error"></div>
+            </form>
+        </div>
+
+        <div class="weather-section">
+            <h2>天气查询</h2>
+            <div class="weather-form">
+                <div class="location-group">
+                    <input type="text" id="cityInput" placeholder="请输入城市编码 (如: 110101 北京东城区)" value="110101">
+                    <div class="location-controls">
+                        <button class="btn btn-small" id="detectLocationBtn">📍 自动定位</button>
+                        <select class="btn btn-small" id="citySelector" style="padding: 5px; font-size: 12px;">
+                            <option value="">选择常用城市</option>
+                            <option value="110101">北京 (110101)</option>
+                            <option value="310101">上海 (310101)</option>
+                            <option value="440101">广州 (440101)</option>
+                            <option value="440301">深圳 (440301)</option>
+                            <option value="330101">杭州 (330101)</option>
+                            <option value="320101">南京 (320101)</option>
+                            <option value="510101">成都 (510101)</option>
+                            <option value="420101">武汉 (420101)</option>
+                            <option value="610101">西安 (610101)</option>
+                        </select>
+                        <button class="btn btn-small" id="clearLocationBtn">清除</button>
+                    </div>
+                    <p class="location-status" id="locationStatus"></p>
+                </div>
+                <select id="extensionsSelect">
+                    <option value="base">实况天气</option>
+                    <option value="all">天气预报</option>
+                </select>
+                <button class="btn" id="queryWeatherBtn">查询天气</button>
+            </div>
+            <div id="weatherError" class="error"></div>
+            <div id="weatherResult" class="weather-result"></div>
+        </div>
+
+        <div class="history-section" id="historySection">
+            <h2>查询历史</h2>
+            <button class="btn" id="loadHistoryBtn">刷新历史</button>
+            <div id="historyList" class="history-list"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let authToken = localStorage.getItem('authToken');
+
+        // Check if user is logged in on page load
+        window.onload = function() {
+            if (authToken) {
+                loadUserProfile();
+            }
+            
+            // Add event listeners
+            document.getElementById('loginTab').addEventListener('click', () => switchTab('login'));
+            document.getElementById('registerTab').addEventListener('click', () => switchTab('register'));
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+            document.getElementById('queryWeatherBtn').addEventListener('click', queryWeather);
+            document.getElementById('loadHistoryBtn').addEventListener('click', loadHistory);
+            document.getElementById('detectLocationBtn').addEventListener('click', detectLocation);
+            document.getElementById('clearLocationBtn').addEventListener('click', clearLocation);
+            document.getElementById('citySelector').addEventListener('change', function() {
+                if (this.value) {
+                    document.getElementById('cityInput').value = this.value;
+                    document.getElementById('locationStatus').textContent = `已选择: ${this.options[this.selectedIndex].text}`;
+                    document.getElementById('locationStatus').style.color = '#27ae60';
+                }
+            });
+        };
+
+        function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(tab + 'Tab').classList.add('active');
+
+            // Update forms
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            document.getElementById(tab + 'Form').classList.add('active');
+
+            // Clear errors
+            document.getElementById('loginError').textContent = '';
+            document.getElementById('registerError').textContent = '';
+        }
+
+        // Login form handler
+        document.getElementById('loginForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    console.log('Login successful', data);
+                    authToken = data.token;
+                    localStorage.setItem('authToken', authToken);
+                    currentUser = data.user;
+                    showUserInfo();
+                    document.getElementById('loginError').textContent = '';
+                } else {
+                    console.log('Login failed', data);
+                    document.getElementById('loginError').textContent = data.error || '登录失败';
+                }
+            } catch (error) {
+                document.getElementById('loginError').textContent = '网络错误';
+            }
+        };
+
+        // Register form handler
+        document.getElementById('registerForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    authToken = data.token;
+                    localStorage.setItem('authToken', authToken);
+                    currentUser = data.user;
+                    showUserInfo();
+                    document.getElementById('registerError').textContent = '';
+                } else {
+                    document.getElementById('registerError').textContent = 
+                        data.errors ? data.errors.map(e => e.msg).join(', ') : data.error || '注册失败';
+                }
+            } catch (error) {
+                document.getElementById('registerError').textContent = '网络错误';
+            }
+        };
+
+        async function loadUserProfile() {
+            try {
+                const response = await fetch('/api/auth/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    showUserInfo();
+                } else {
+                    logout();
+                }
+            } catch (error) {
+                logout();
+            }
+        }
+
+        function showUserInfo() {
+            console.log('showUserInfo called', currentUser);
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('userInfo').style.display = 'block';
+            document.getElementById('historySection').style.display = 'block';
+            document.getElementById('welcomeText').textContent = `欢迎, ${currentUser.username}!`;
+        }
+
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            localStorage.removeItem('authToken');
+            document.getElementById('authSection').classList.remove('hidden');
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('historySection').style.display = 'none';
+        }
+
+        async function queryWeather() {
+            const city = document.getElementById('cityInput').value;
+            const extensions = document.getElementById('extensionsSelect').value;
+            
+            if (!city) {
+                document.getElementById('weatherError').textContent = '请输入城市编码';
+                return;
+            }
+
+            try {
+                const endpoint = extensions === 'base' ? '/api/weather/current' : '/api/weather/forecast';
+                const headers = {};
+                
+                if (authToken) {
+                    headers['Authorization'] = `Bearer ${authToken}`;
+                }
+
+                const response = await fetch(`${endpoint}?city=${city}`, { headers });
+                const data = await response.json();
+
+                if (response.ok) {
+                    displayWeatherResult(data, extensions);
+                    document.getElementById('weatherError').textContent = '';
+                } else {
+                    document.getElementById('weatherError').textContent = data.error || '查询失败';
+                    document.getElementById('weatherResult').innerHTML = '';
+                }
+            } catch (error) {
+                document.getElementById('weatherError').textContent = '网络错误';
+                document.getElementById('weatherResult').innerHTML = '';
+            }
+        }
+
+        function displayWeatherResult(data, extensions) {
+            const resultDiv = document.getElementById('weatherResult');
+            
+            if (extensions === 'base' && data.lives && data.lives.length > 0) {
+                const weather = data.lives[0];
+                resultDiv.innerHTML = `
+                    <div class="weather-card">
+                        <h3>${weather.province} ${weather.city} 实况天气</h3>
+                        <div class="weather-info">
+                            <div class="weather-item">
+                                <strong>天气</strong>
+                                ${weather.weather}
+                            </div>
+                            <div class="weather-item">
+                                <strong>温度</strong>
+                                ${weather.temperature}°C
+                            </div>
+                            <div class="weather-item">
+                                <strong>风向</strong>
+                                ${weather.winddirection}
+                            </div>
+                            <div class="weather-item">
+                                <strong>风力</strong>
+                                ${weather.windpower}级
+                            </div>
+                            <div class="weather-item">
+                                <strong>湿度</strong>
+                                ${weather.humidity}%
+                            </div>
+                            <div class="weather-item">
+                                <strong>更新时间</strong>
+                                ${weather.reporttime}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (extensions === 'all' && data.forecasts && data.forecasts.length > 0) {
+                const forecast = data.forecasts[0];
+                let forecastHtml = `
+                    <div class="weather-card">
+                        <h3>${forecast.province} ${forecast.city} 天气预报</h3>
+                        <p>发布时间: ${forecast.reporttime}</p>
+                        <div class="forecast-grid">
+                `;
+                
+                forecast.casts.forEach(cast => {
+                    forecastHtml += `
+                        <div class="forecast-card">
+                            <strong>${cast.date}</strong>
+                            <p>星期${cast.week}</p>
+                            <p>白天: ${cast.dayweather} ${cast.daytemp}°C</p>
+                            <p>夜间: ${cast.nightweather} ${cast.nighttemp}°C</p>
+                            <p>风力: ${cast.daypower}级</p>
+                        </div>
+                    `;
+                });
+                
+                forecastHtml += '</div></div>';
+                resultDiv.innerHTML = forecastHtml;
+            } else {
+                resultDiv.innerHTML = '<p>暂无天气数据</p>';
+            }
+        }
+
+        async function loadHistory() {
+            if (!authToken) return;
+
+            try {
+                const response = await fetch('/api/weather/history', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displayHistory(data.queries);
+                }
+            } catch (error) {
+                console.error('Failed to load history:', error);
+            }
+        }
+
+        function displayHistory(queries) {
+            const historyDiv = document.getElementById('historyList');
+            
+            if (queries.length === 0) {
+                historyDiv.innerHTML = '<p>暂无查询历史</p>';
+                return;
+            }
+
+            historyDiv.innerHTML = queries.map(query => `
+                <div class="history-item">
+                    <span>${query.city}</span>
+                    <span>${new Date(query.query_time).toLocaleString()}</span>
+                </div>
+            `).join('');
+        }
+
+        // Geolocation functions
+        async function detectLocation() {
+            const statusEl = document.getElementById('locationStatus');
+            const btnEl = document.getElementById('detectLocationBtn');
+            
+            if (!navigator.geolocation) {
+                statusEl.textContent = '您的浏览器不支持地理定位';
+                statusEl.style.color = '#e74c3c';
+                return;
+            }
+
+            // Update UI to show loading
+            btnEl.disabled = true;
+            btnEl.textContent = '🔄 定位中...';
+            statusEl.textContent = '正在获取您的位置...';
+            statusEl.style.color = '#6c757d';
+
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 300000 // 5 minutes cache
+            };
+
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    try {
+                        const { latitude, longitude } = position.coords;
+                        statusEl.textContent = `坐标: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+                        
+                        // Get city code from coordinates
+                        const response = await fetch(`/api/location/geocode?longitude=${longitude}&latitude=${latitude}`);
+                        const data = await response.json();
+
+                        if (response.ok && data.success) {
+                            const locationInfo = data.data;
+                            document.getElementById('cityInput').value = locationInfo.adcode;
+                            statusEl.textContent = `已定位到: ${locationInfo.province} ${locationInfo.city}`;
+                            statusEl.style.color = '#27ae60';
+                        } else {
+                            throw new Error(data.error || '位置解析失败');
+                        }
+                    } catch (error) {
+                        console.error('Location error:', error);
+                        statusEl.textContent = `定位失败: ${error.message}`;
+                        statusEl.style.color = '#e74c3c';
+                    } finally {
+                        btnEl.disabled = false;
+                        btnEl.textContent = '📍 自动定位';
+                    }
+                },
+                (error) => {
+                    let errorMessage = '定位失败';
+                    switch (error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage = '用户拒绝了定位请求';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage = '位置信息不可用';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage = '定位超时';
+                            break;
+                    }
+                    
+                    statusEl.textContent = errorMessage;
+                    statusEl.style.color = '#e74c3c';
+                    btnEl.disabled = false;
+                    btnEl.textContent = '📍 自动定位';
+                },
+                options
+            );
+        }
+
+        function clearLocation() {
+            document.getElementById('cityInput').value = '110101';
+            document.getElementById('locationStatus').textContent = '';
+        }
+    </script>
+</body>
+</html>
